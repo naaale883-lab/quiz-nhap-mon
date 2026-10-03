@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Quiz Nhập môn chuyên ngành - XDDD & Nội thất</title>
+<style>
+*{box-sizing:border-box} body{margin:0;background:#f5f6f8;color:#202124;font-family:Arial,Helvetica,sans-serif}
+.header{background:#fff;border-bottom:1px solid #ddd;padding:18px 20px;position:sticky;top:0;z-index:5}
+.header h1{font-size:21px;margin:0 0 6px} .header p{margin:0;color:#666;font-size:14px}
+.wrap{max-width:850px;margin:24px auto 100px;padding:0 14px}
+.card{background:#fff;border:1px solid #ddd;border-radius:12px;box-shadow:0 1px 3px #0000000b}
+.start{padding:30px;text-align:center} .start h2{margin-top:0}
+.btn{border:0;border-radius:8px;padding:12px 20px;font-size:15px;font-weight:700;cursor:pointer}
+.primary{background:#1677ff;color:#fff} .primary:hover{background:#095dcc}
+.secondary{background:#eef1f5;color:#222}
+.topinfo{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:14px 18px;border-bottom:1px solid #eee;font-size:13px;color:#666}
+.badge{background:#eef4ff;color:#1769d1;padding:5px 9px;border-radius:20px;font-weight:700}
+.timer{font-weight:800;color:#e53935}
+.body{padding:22px} .q{font-size:19px;line-height:1.5;font-weight:700;margin-bottom:18px}
+.option{display:flex;gap:10px;align-items:flex-start;border:1px solid #ddd;border-radius:9px;padding:12px;margin:9px 0;cursor:pointer;line-height:1.45}
+.option:hover{background:#f7f9fc} .option input{margin-top:3px;accent-color:#1677ff}
+.option.correct{background:#e9f7ee;border-color:#31a35a} .option.wrong{background:#fff0f0;border-color:#e14b4b}
+.feedback{margin-top:14px;padding:12px;border-radius:8px;background:#f1f3f5;line-height:1.5}
+.nav{display:flex;justify-content:space-between;gap:10px;margin-top:18px}
+.progress{height:7px;background:#e8eaed;border-radius:99px;overflow:hidden;margin-top:10px}
+.progress i{display:block;height:100%;background:#1677ff;width:0}
+.result{display:none;padding:30px;text-align:center} .score{font-size:44px;font-weight:800;margin:8px}
+.stat{color:#666;margin:4px} .review{text-align:left;margin-top:22px}
+.review-item{padding:12px;border-top:1px solid #eee} .ok{color:#188038;font-weight:700} .bad{color:#d93025;font-weight:700}
+.hidden{display:none!important} .muted{color:#666}
+</style>
+</head>
+<body>
+<header class="header">
+<h1>Quiz Nhập môn chuyên ngành – XDDD & Nội thất</h1>
+<p>45 câu • Trắc nghiệm 4 lựa chọn • Dựa trên đề cương bạn gửi</p>
+<div class="progress"><i id="bar"></i></div>
+</header>
+
+<main class="wrap">
+<section id="start" class="card start">
+<h2>🎯 Sẵn sàng ôn bài?</h2>
+<p>Quiz có <b>45 câu</b>, mỗi câu <b>20 giây</b>. Chọn đáp án rồi bấm “Câu tiếp theo”.</p>
+<p class="muted">Cuối bài sẽ hiện điểm và xem lại đáp án.</p>
+<button class="btn primary" onclick="startQuiz()">Bắt đầu ngay</button>
+</section>
+
+<section id="quiz" class="card hidden">
+<div class="topinfo">
+<span><span id="category" class="badge"></span> &nbsp; Câu <b id="num"></b>/45</span>
+<span class="timer">⏱ <span id="time">20</span>s</span>
+</div>
+<div class="body">
+<div id="question" class="q"></div>
+<div id="options"></div>
+<div id="feedback" class="feedback hidden"></div>
+<div class="nav">
+<button class="btn secondary" onclick="skipQuestion()">Bỏ qua</button>
+<button id="next" class="btn primary" onclick="nextQuestion()">Câu tiếp theo →</button>
+</div>
+</div>
+</section>
+
+<section id="result" class="card result">
+<div class="muted">KẾT QUẢ</div>
+<div class="score" id="score"></div>
+<div class="stat" id="correctCount"></div>
+<div class="stat" id="wrongCount"></div>
+<div class="stat" id="percent"></div>
+<div class="review" id="review"></div>
+<br>
+<button class="btn primary" onclick="restart()">Làm lại</button>
+</section>
+</main>
+
+<script>
+const questions = [{"category": "Chuyên đề 2", "q": "Ngày truyền thống của Trường Đại học Công nghệ giao thông vận tải được lấy là ngày nào?", "options": ["15/11 được lấy là ngày Truyền thống Trường", "29/11 được lấy là ngày Truyền thống Trường", "10/11 được lấy là ngày Truyền thống Trường"], "answer": 0}, {"category": "Chuyên đề 2", "q": "Trường Đại học Công nghệ giao thông vận tải được nâng cấp lên Đại học vào ngày/tháng/năm nào?", "options": ["Theo Quyết định số 630/QĐ-TTg ngày 27/4/2011 của Thủ tướng Chính phủ", "Theo Quyết định số 630/QĐ-TTg ngày 26/4/2011 của Thủ tướng Chính phủ", "Theo Quyết định số 630/QĐ-TTg ngày 25/4/2011 của Thủ tướng Chính phủ"], "answer": 0}, {"category": "Chuyên đề 2", "q": "Trường Đại học Công nghệ giao thông vận tải chịu sự quản lý trực tiếp của Bộ/ngành nào?", "options": ["Chịu sự quản lý trực tiếp và sự quản lý nhà nước về Giáo dục và đào tạo của Bộ Xây Dựng", "Chịu sự quản lý trực tiếp của Bộ Xây Dựng và sự quản lý nhà nước về Giáo dục và đào tạo của Bộ Giáo dục và đào tạo", "Chịu sự quản lý trực tiếp và sự quản lý nhà nước về Giáo dục và đào tạo của Bộ Giáo dục"], "answer": 1}, {"category": "Chuyên đề 2", "q": "Trường được nâng cấp thành Trường Đại học Công nghệ Giao thông Vận tải vào năm:", "options": ["2001", "2005", "2011", "2017"], "answer": 2}, {"category": "Chuyên đề 2", "q": "Trình bày khái quát cơ cấu tổ chức Đảng, đoàn thể và tổ chức xã hội của Trường Đại học Công nghệ giao thông vận tải:", "options": ["Đảng bộ Trường; Đoàn Thanh niên Cộng sản Hồ Chí Minh; Hội sinh viên; Các tổ chức khác được thành lập theo quy định của pháp luật.", "Đảng bộ Trường; Công đoàn; Đoàn Thanh niên Cộng sản Hồ Chí Minh; Hội sinh viên; Các tổ chức khác được thành lập theo quy định của pháp luật.", "Đảng bộ Trường; Công đoàn; Đoàn Thanh niên Cộng sản Hồ Chí Minh; Hội sinh viên."], "answer": 1}, {"category": "Chuyên đề 2", "q": "Năm 2025, Trường được giao nhiệm vụ chủ trì mạng lưới trung tâm đào tạo xuất sắc và tài năng trong lĩnh vực:", "options": ["Công nghệ thông tin", "Công nghệ giao thông và hạ tầng tiên tiến, thông minh", "Kiến trúc và quy hoạch", "Cơ khí chế tạo"], "answer": 1}, {"category": "Chuyên đề 2", "q": "Nêu vai trò - chức năng của Hiệu trưởng?", "options": ["Hiệu trưởng là người quản trị Nhà trường, thực hiện quyền đại diện của chủ sở hữu và các bên có lợi ích liên quan", "Hiệu trưởng là người chịu trách nhiệm quản lý, điều hành các hoạt động của Trường theo quy định của pháp luật và quy chế tổ chức và hoạt động của Trường", "Hiệu trưởng là người giúp Hội đồng trường trong quản lý, điều hành các hoạt động của Trường"], "answer": 1}, {"category": "Chuyên đề 2", "q": "Bộ môn Xây dựng DD&CN tham gia giảng dạy các học phần chuyên ngành thuộc những lĩnh vực nào sau đây?", "options": ["Cầu hầm, đường bộ và metro", "Cơ khí, ô tô và điện tử", "Xây dựng dân dụng & công nghiệp, nội thất và hạ tầng đô thị", "Công nghệ thông tin, điện và tự động hóa"], "answer": 2}, {"category": "Chuyên đề 2", "q": "Khoa Công trình có nhiệm vụ đào tạo và cung cấp nguồn nhân lực chất lượng cao theo định hướng nào?", "options": ["Định hướng nghiên cứu cơ bản", "Định hướng ứng dụng", "Định hướng đào tạo nghề ngắn hạn", "Định hướng quản lý hành chính"], "answer": 1}, {"category": "Chuyên đề 2", "q": "Hiệu trưởng là người:", "options": ["Chỉ phụ trách công tác đào tạo", "Chịu trách nhiệm quản lý, điều hành hoạt động của Trường", "Chỉ phụ trách nghiên cứu khoa học", "Chỉ phụ trách công tác tổ chức cán bộ"], "answer": 1}, {"category": "Chuyên đề 2", "q": "Hãy nêu chức năng - nhiệm vụ của Bộ môn?", "options": ["Bộ môn là đơn vị chuyên môn về đào tạo, khoa học và công nghệ của một số ngành, chuyên ngành đào tạo thuộc Khoa", "Bộ môn là đơn vị chuyên môn về đào tạo, khoa học và công nghệ của một số ngành, chuyên ngành đào tạo thuộc Trường", "Bộ môn là đơn vị chuyên môn về khoa học và công nghệ của một số ngành, chuyên ngành đào tạo thuộc Khoa"], "answer": 0}, {"category": "Chuyên đề 2", "q": "Tiền thân của Trường Đại học Công nghệ Giao thông Vận tải là:", "options": ["Trường Cao đẳng Giao thông", "Trường Cao đẳng Công chính", "Trường Trung cấp Công chính", "Trường Kỹ thuật Giao thông"], "answer": 1}, {"category": "Chuyên đề 2", "q": "Có bao nhiêu đơn vị chuyên môn trực thuộc Khoa Công trình - Trường Đại học Công nghệ giao thông vận tải?", "options": ["7 đơn vị chuyên môn trực thuộc Khoa Công trình", "6 đơn vị chuyên môn trực thuộc Khoa Công trình", "5 đơn vị chuyên môn trực thuộc Khoa Công trình"], "answer": 0}, {"category": "Chuyên đề 2", "q": "Bộ môn Xây dựng dân dụng và công nghiệp hiện tại đang đào tạo bao nhiêu chuyên ngành ở trình độ đại học?", "options": ["2 chuyên ngành", "3 chuyên ngành", "4 chuyên ngành"], "answer": 0}, {"category": "Chuyên đề 2", "q": "Bộ môn Xây dựng dân dụng và công nghiệp hiện tại đang đào tạo sau đại học và đào tạo tiến sĩ bao nhiêu chuyên ngành?", "options": ["2 chuyên ngành", "3 chuyên ngành", "4 chuyên ngành"], "answer": 0}, {"category": "Chuyên đề 2", "q": "Năm 2025, Trường Đại học Công nghệ Giao thông vận tải được giao nhiệm vụ chủ trì mạng lưới đào tạo xuất sắc và tài năng trong lĩnh vực nào?", "options": ["Mạng lưới vật liệu mới và công nghệ xây dựng tiên tiến", "Mạng lưới công nghệ sinh học trong công nghiệp và y sinh", "Mạng lưới công nghệ giao thông và hạ tầng tiên tiến thông minh"], "answer": 2}, {"category": "Chuyên đề 3", "q": "Tỷ lệ thực hành / thực tập trong chuyên ngành Kiến trúc nội thất/ Xây dựng DD và CN là bao nhiêu?", "options": ["10%", "20%", "30%", "40%"], "answer": 2}, {"category": "Chuyên đề 3", "q": "Đồ án tốt nghiệp có thời lượng bao nhiêu tín chỉ?", "options": ["6 TC", "7 TC", "8 TC", "10 TC"], "answer": 2}, {"category": "Chuyên đề 3", "q": "Sinh viên ra trường có thể làm ở những vị trí nào?", "options": ["Tư vấn thiết kế", "Tư vấn giám sát", "Quản lý, điều hành thi công", "Tất cả các vai trò trên"], "answer": 3}, {"category": "Chuyên đề 3", "q": "Chương trình đào tạo ngành CNKT Công trình xây dựng có tổng bao nhiêu tín chỉ?", "options": ["100 TC", "150 TC", "165 TC", "170 TC"], "answer": 2}, {"category": "Chuyên đề 4", "q": "4 trụ cột của giáo dục Thế kỷ XXI theo UNESCO đó là gì?", "options": ["Học để biết (Learning to know); Học để trưởng thành (Learning to be); Học để chung sống (Learning to live together); Học để làm (Learning to do).", "Học để biết (Learning to know); Học để trưởng thành (Learning to be); Học để chung sống (Learning to live together); Học để kiếm tiền (Learning to earn).", "Học để hiểu (Learning to understand); Học để trưởng thành (Learning to be); Học để chung sống (Learning to live together); Học để làm (Learning to do).", "Học để biết (Learning to know); Học để trưởng thành (Learning to be); Học để tồn tại (Learning to survive); Học để làm (Learning to do)."], "answer": 0}, {"category": "Chuyên đề 4", "q": "Những yếu tố ảnh hưởng đến việc học tập ở bậc đại học có thể là:", "options": ["Thói quen thụ động; chưa có khả năng tự học tốt; kĩ năng làm việc nhóm yếu; tiêu cực, thiếu trung thực trong mọi việc và học tập; có nhiều thứ để quan tâm; bận đi làm thêm; ngại khó, ngại khổ; xã hội trọng danh vị hơn thực học, …", "Thói quen chủ động; có khả năng tự học tốt; kĩ năng làm việc nhóm yếu; tiêu cực, thiếu trung thực trong mọi việc và học tập; có nhiều thứ để quan tâm; bận đi làm thêm; ngại khó, ngại khổ; xã hội trọng danh vị hơn thực học, …", "Thói quen thụ động; chưa có khả năng tự học tốt; kĩ năng làm việc nhóm tốt; tích cực, trung thực trong mọi việc và học tập; có nhiều thứ để quan tâm; bận đi làm thêm; ngại khó, ngại khổ; xã hội trọng danh vị hơn thực học, …"], "answer": 0}, {"category": "Chuyên đề 4", "q": "Ý nghĩa các chữ cái trong phương pháp học tập A.S.P.I.R.E?", "options": ["Approach – Select – Put together – Inspect – Reconsider – Evaluate", "Approach – Sales – Put together – Inspect – Reconsider – Evaluate", "Approach – Select – Push together – Inspect – Reconsider – Evaluate", "Approach – Select – Put together – Inspect – Recommend – Evaluate"], "answer": 0}, {"category": "Chuyên đề 4", "q": "Phương pháp ghi nhớ bằng từ khóa có thể thực hiện qua 3 bước nào sau đây?", "options": ["Xác định từ khóa - Chuyển từ khóa thành hình ảnh – Kết hợp các hình ảnh thành câu chuyện", "Xác định từ khóa - Chuyển từ khóa thành video – Kết hợp các video thành câu chuyện", "Xác định từ khóa - Chuyển từ khóa thành âm thanh – Kết hợp các âm thanh thành câu chuyện"], "answer": 0}, {"category": "Chuyên đề 4", "q": "Tại sao phải quản lý thời gian hiệu quả?", "options": ["Tăng năng suất làm việc; Giảm bớt áp lực trong công việc; Có thời gian dành cho bản thân; Hạn chế nhiều thói quen xấu khi tận dụng tối đa thời gian để làm việc;", "Tăng năng suất làm việc; Giảm bớt áp lực trong công việc; Có thời gian dành cho bản thân; Giảm làm việc xấu;", "Tăng năng suất làm việc; Giảm bớt áp lực trong công việc; Có thêm thời gian truy cập mạng xã hội; Hạn chế nhiều thói quen xấu khi tận dụng tối đa thời gian để làm việc;"], "answer": 0}, {"category": "Kiến trúc Nội thất", "q": "AutoCAD dùng để làm gì?", "options": ["Chỉnh ảnh", "Vẽ kỹ thuật 2D và mô hình 3D cơ bản", "Render video", "Thiết kế đồ họa"], "answer": 1}, {"category": "Kiến trúc Nội thất", "q": "SketchUp mạnh ở khả năng nào?", "options": ["Render video", "Dựng hình 3D trực quan, dễ thao tác", "Chỉnh ảnh", "Thiết kế logo"], "answer": 1}, {"category": "Kiến trúc Nội thất", "q": "3Ds Max chủ yếu được dùng trong công việc gì?", "options": ["Thiết kế kiến trúc, nội thất, phim, game", "Thiết kế 2D", "Photoshop", "Lumion"], "answer": 0}, {"category": "Kiến trúc Nội thất", "q": "AutoCAD thường được sử dụng trong lĩnh vực nào sau đây?", "options": ["Âm nhạc", "Kiến trúc, xây dựng, cơ khí, nội thất", "Nhiếp ảnh", "Quảng cáo"], "answer": 1}, {"category": "Kiến trúc Nội thất", "q": "SketchUp thường được sử dụng trong công việc gì?", "options": ["Xây dựng bản đồ", "Dựng mô hình nhà, đồ nội thất, cảnh quan", "Lập trình", "Kỹ thuật điện"], "answer": 1}, {"category": "Kiến trúc Nội thất", "q": "3Ds Max mạnh nhất ở khả năng nào?", "options": ["Render hình ảnh, ánh sáng và vật liệu chân thực", "Dựng mô hình nhanh", "Tạo bản vẽ 2D", "Tạo văn bản"], "answer": 0}, {"category": "Kiến trúc Nội thất", "q": "3Ds Max thường dùng kèm với plugin nào để diễn họa?", "options": ["V-Ray hoặc Corona Renderer", "AutoCAD", "Word", "Excel"], "answer": 0}, {"category": "Kiến trúc Nội thất", "q": "Ưu điểm của 3Ds Max so với SketchUp là gì?", "options": ["Tạo hình chi tiết và hiệu ứng ánh sáng chuyên sâu hơn", "Dễ học hơn", "Nhẹ hơn", "Mô hình cơ bản hơn"], "answer": 0}, {"category": "Kiến trúc Nội thất", "q": "Một lợi ích lớn của Revit là gì?", "options": ["Không thể làm việc nhóm", "Hỗ trợ nhiều nhóm chuyên môn làm việc trên cùng một mô hình", "Chỉ làm 2D", "Không lưu được dữ liệu"], "answer": 1}, {"category": "Kiến trúc Nội thất", "q": "Công nghệ BIM trong Revit giúp công việc gì?", "options": ["Kết nối dữ liệu giữa các bộ môn kiến trúc – kết cấu – cơ điện", "Tách dữ liệu độc lập", "Giảm dung lượng", "Xóa mô hình"], "answer": 0}, {"category": "Kiến trúc Nội thất", "q": "Lumion cho phép người dùng làm gì?", "options": ["Xem kết quả ngay trong quá trình làm việc (real-time render)", "Chỉ xuất ảnh tĩnh", "Vẽ bản vẽ kỹ thuật", "Không hỗ trợ ánh sáng"], "answer": 0}, {"category": "Kiến trúc Nội thất", "q": "Lumion cung cấp môi trường tự nhiên nào?", "options": ["Núi, sông, biển, rừng, đường phố", "Đèn điện", "Bản vẽ 2D", "Văn bản"], "answer": 0}, {"category": "Kiến trúc Nội thất", "q": "Lumion tương thích với các phần mềm nào?", "options": ["Revit, SketchUp, 3Ds Max, AutoCAD", "Word và Excel", "PowerPoint", "Photoshop"], "answer": 0}, {"category": "Kiến trúc Nội thất", "q": "Lumion hỗ trợ xuất video cho việc gì?", "options": ["TV", "Thiết bị thực tế ảo (VR)", "Điện thoại", "Bản vẽ PDF"], "answer": 1}, {"category": "Kiến trúc Nội thất", "q": "Ưu điểm nổi bật của Lumion là gì?", "options": ["Tạo ảnh đen trắng", "Hiển thị hình ảnh sống động, nhanh chóng và trực quan", "Thiết kế 2D", "Vẽ sơ đồ kỹ thuật"], "answer": 1}, {"category": "Kiến trúc Nội thất", "q": "Photoshop hữu ích nhất trong giai đoạn nào?", "options": ["Trình bày ý tưởng và chỉnh sửa phối cảnh sau render", "Lên ý tưởng 3D", "Tính toán khối lượng", "Dựng kết cấu"], "answer": 0}, {"category": "Kiến trúc Nội thất", "q": "Photoshop hỗ trợ hiệu quả cho công việc gì?", "options": ["Nhiếp ảnh và truyền thông", "Kiến trúc, nội thất, thiết kế đồ họa, quảng cáo", "Chỉ thiết kế web", "Thiết kế cơ khí"], "answer": 1}, {"category": "Kiến trúc Nội thất", "q": "Tại sao Photoshop quan trọng trong thiết kế nội thất?", "options": ["Tạo âm thanh", "Giúp hoàn thiện bản vẽ trình bày và hậu kỳ render", "Chỉnh sửa video", "Tạo bảng tính"], "answer": 1}, {"category": "Kiến trúc Nội thất", "q": "Phần mềm nào hỗ trợ mô hình hóa 3D nhanh nhất?", "options": ["Photoshop", "SketchUp", "Word", "Excel"], "answer": 1}, {"category": "Kiến trúc Nội thất", "q": "Phần mềm nào render hình ảnh sống động nhất?", "options": ["Lumion", "Revit", "AutoCAD", "Word"], "answer": 0}];
+let index=0, score=0, selected=null, time=20, timer=null, answers=[];
+
+function startQuiz(){
+  document.getElementById('start').classList.add('hidden');
+  document.getElementById('quiz').classList.remove('hidden');
+  index=0; score=0; answers=[]; loadQuestion();
+}
+function loadQuestion(){
+  clearInterval(timer); time=20; selected=null;
+  const item=questions[index];
+  document.getElementById('category').textContent=item.category;
+  document.getElementById('num').textContent=index+1;
+  document.getElementById('time').textContent=time;
+  document.getElementById('bar').style.width=((index)/questions.length*100)+'%';
+  document.getElementById('question').textContent=item.q;
+  const box=document.getElementById('options'); box.innerHTML='';
+  document.getElementById('feedback').classList.add('hidden');
+  document.getElementById('next').textContent=index===questions.length-1?'Nộp bài ✓':'Câu tiếp theo →';
+  item.options.forEach((opt,i)=>{
+    const label=document.createElement('label');
+    label.className='option';
+    label.innerHTML='<input type="radio" name="answer" value="'+i+'"><span><b>'+String.fromCharCode(65+i)+'.</b> '+escapeHtml(opt)+'</span>';
+    label.onclick=()=>{selected=i};
+    box.appendChild(label);
+  });
+  timer=setInterval(()=>{
+    time--; document.getElementById('time').textContent=time;
+    if(time<=0){clearInterval(timer); recordAnswer(null); showFeedback();}
+  },1000);
+}
+function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));}
+function recordAnswer(value){
+  if(answers[index]!==undefined) return;
+  const correct=questions[index].answer;
+  answers[index]=value;
+  if(value===correct) score++;
+}
+function showFeedback(){
+  const item=questions[index];
+  const opts=document.querySelectorAll('.option');
+  opts.forEach((el,i)=>{
+    el.onclick=null;
+    if(i===item.answer) el.classList.add('correct');
+    if(selected!==null && i===selected && selected!==item.answer) el.classList.add('wrong');
+  });
+  const fb=document.getElementById('feedback');
+  if(selected===item.answer) fb.textContent='✅ Chính xác!';
+  else if(selected===null) fb.textContent='⏰ Hết giờ. Đáp án đúng: '+String.fromCharCode(65+item.answer)+'.';
+  else fb.textContent='❌ Chưa đúng. Đáp án đúng: '+String.fromCharCode(65+item.answer)+'.';
+  fb.classList.remove('hidden');
+}
+function nextQuestion(){
+  clearInterval(timer);
+  if(answers[index]===undefined) recordAnswer(selected);
+  showFeedback();
+  setTimeout(()=>{
+    if(index<questions.length-1){index++;loadQuestion();}
+    else finish();
+  },450);
+}
+function skipQuestion(){
+  clearInterval(timer);
+  if(answers[index]===undefined) recordAnswer(null);
+  if(index<questions.length-1){index++;loadQuestion();} else finish();
+}
+function finish(){
+  clearInterval(timer);
+  document.getElementById('quiz').classList.add('hidden');
+  document.getElementById('result').style.display='block';
+  document.getElementById('bar').style.width='100%';
+  const wrong=questions.length-score;
+  document.getElementById('score').textContent=score+' / '+questions.length;
+  document.getElementById('correctCount').textContent='Đúng: '+score;
+  document.getElementById('wrongCount').textContent='Sai/chưa trả lời: '+wrong;
+  document.getElementById('percent').textContent='Tỷ lệ đúng: '+Math.round(score/questions.length*100)+'%';
+  const review=document.getElementById('review'); review.innerHTML='<h3>Xem lại đáp án</h3>';
+  questions.forEach((q,i)=>{
+    const your=answers[i];
+    const ok=your===q.answer;
+    const yourText=your===null||your===undefined?'Chưa trả lời':String.fromCharCode(65+your);
+    review.innerHTML+=`<div class="review-item"><b>Câu ${i+1}.</b> ${escapeHtml(q.q)}<br><span class="${ok?'ok':'bad'}">${ok?'✓ Đúng':'✗ Sai'} — Bạn chọn: ${yourText} | Đáp án: ${String.fromCharCode(65+q.answer)}</span></div>`;
+  });
+}
+function restart(){
+  document.getElementById('result').style.display='none';
+  document.getElementById('start').classList.remove('hidden');
+  document.getElementById('bar').style.width='0%';
+}
+</script>
+</body>
+</html>
